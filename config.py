@@ -28,7 +28,7 @@ MAX_TEXT_CHARS = 20_000
 
 # Unit 8 rate limiting
 # Keep this False for Unit 7. Turn it on in Unit 8 Milestone 1.
-RATE_LIMITING_ENABLED = os.getenv("AI201_RATE_LIMITS", "0") == "1"
+RATE_LIMITING_ENABLED = True
 
 # Chosen Unit 8 limits. Eight submissions in a minute is enough for a real writer
 # retrying work, but a 15-request flood will clearly trigger 429 responses.
