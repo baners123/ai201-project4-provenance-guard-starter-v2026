@@ -1,134 +1,31 @@
-# Acceptance criteria — Provenance Guard
+# Acceptance Criteria: Provenance Guard
 
-Five criteria that say what "working" means for this service, written in unit 7
-**before** you built it.
+## 1. False positives on my own writing
 
-**All five are yours.** None are given.
+When I submit 10 pieces of writing that I wrote myself, at most 1 of the 10 may be labeled `high-confidence AI`.
 
-An acceptance criterion names a number or something plainly observable. *"The
-detector is accurate"* is an opinion — and perfect AI detection isn't possible
-anyway, so it's an opinion about something nobody can deliver. *"Of 10 pieces I
-wrote myself, at most 1 is labelled high-confidence AI"* is a criterion.
+**Why this target:** A false positive is the most expensive mistake in this service because it accuses a real writer of using AI. I am willing to let more uncertain cases fall into the unsure range if that keeps the high-confidence AI label rare on real human writing.
 
-Under each, write a sentence or two on **why that target**. *"I allow at most 1
-false positive in 10 because on a writing site a wrong accusation costs more
-than a missed detection"* is a real answer.
+## 2. AI and human calibration scores are separated
 
-> Missing your own targets next unit costs you nothing. Setting a target so
-> easy you can't miss it does.
+For 5 clearly AI-generated calibration samples and 5 clearly human-written calibration samples selected before evaluation, the average combined score for the AI group should be at least 0.20 higher than the average combined score for the human group.
 
----
+**Why this target:** The service combines a model signal and a stylometry signal, so the combined score should create a noticeable separation between the two groups instead of clustering everything near the same threshold. A 0.20 gap is large enough to show that the two-signal design is contributing useful separation.
 
-## Pick numbers you can defend
+## 3. All three labels are reachable
 
-**Cover at least three of these five areas.** They're prompts, not a form.
+Across 6 deliberately chosen calibration inputs that span the expected score range, the service must produce all 3 reader-facing labels at least once: high-confidence human, unsure, and high-confidence AI.
 
-| Area | A question it could answer |
-|---|---|
-| False positives | How often may a human's writing get called AI? |
-| Score spread | How far apart should clearly-AI and clearly-human text score? |
-| Label coverage | Is every one of your three labels actually reachable? |
-| The appeal path | Does an appeal always change status and always get recorded? |
-| Bad input | What happens when `text` is missing, empty, or enormous? |
+**Why this target:** My thresholds are 0.30 and 0.75. If one of the three labels can never be reached, then the threshold design is not functioning as intended and the uncertainty layer is not actually available to users.
 
-Two things worth knowing before you pick numbers:
+## 4. Every valid appeal moves the item to review and is recorded
 
-- **The expensive mistake is one-sided.** Missing some AI text costs the site a
-  little. Accusing a real writer costs that person a lot. A criterion that
-  treats both errors as equally bad is describing a system nobody would ship.
-- **Unit 8 tests across three trials, and the target has to hold across all
-  three.** Your first signal runs a model, so identical input can score
-  differently twice. A target of "at most 1 in 10" against trials of 2, 1, 2 is
-  a **miss**.
+For 5 valid appeals using real existing `content_id` values, all 5 must return `status: under_review`, and all 5 must create an appeal entry in `logs/audit.jsonl`.
 
----
-## 1.
+**Why this target:** The appeal path is the writer's protection when the detector is wrong. Because a false accusation can harm a real writer, a valid appeal should never silently fail or leave the original decision as the final status.
 
-<!-- Your criterion. It must name a number. -->
+## 5. Bad input fails safely
 
+For 4 bad-input cases, missing `text`, empty `text`, `null` text, and text longer than 20,000 characters, all 4 requests must return a 4xx JSON response, none may return a 500 error, and each rejection must be written to the audit log.
 
-
-**Why this target:**
-
-
-
----
-
-## 2.
-
-<!-- Your criterion. -->
-
-
-
-**Why this target:**
-
-
-
----
-
-## 3.
-
-<!-- Your criterion. -->
-
-
-
-**Why this target:**
-
-
-
----
-
-## 4.
-
-<!-- Your criterion. -->
-
-
-
-**Why this target:**
-
-
-
----
-
-## 5.
-
-<!-- Your criterion. -->
-
-
-
-**Why this target:**
-
-
-
----
-
-<!-- ─────────────────────────────────────────────────────────────────────────
-     UNIT 8 — read this before you change anything above.
-
-     If a criterion turns out to be BROKEN rather than merely unmet, you can
-     revise it, and that earns credit. But never delete or edit the original
-     line. Add the revision underneath, like this:
-
-         ## 2. Uncertain cases land in the unsure band
-
-         The system handles uncertain cases well.
-
-         **Why this target:** ...
-
-         > **Revised in unit 8:** Text I judged borderline scores between
-         > 0.4 and 0.6 in at least 4 of 5 cases.
-         >
-         > **Why revised:** "well" gave me nothing to check. I couldn't
-         > reach a verdict from it at all.
-
-     That's a revision because the criterion couldn't be MEASURED.
-
-     Lowering a target because you missed it is not a revision, and it costs
-     you the point:
-
-         ✗ "At most 1 of 10 of my own pieces flagged as AI" → "at most 3
-            of 10", because 1 of 10 turned out to be hard.
-
-     A number you missed stays where it is, gets diagnosed, and gets a fix
-     attempted. That's where the points are.
-     ───────────────────────────────────────────────────────────────────────── -->
+**Why this target:** Invalid input should be stopped at the route before either signal runs. This protects the detector pipeline from malformed requests and makes failures visible in the audit log instead of turning them into unexplained crashes.

@@ -2,33 +2,25 @@
 
 ## What This Does
 
-Provenance Guard is a backend service for a writing platform. A client sends POST /submit with text and creator_id. The service validates the request, assigns a content_id, runs two signals, combines their scores, maps the score to one of three labels, records the decision in logs/audit.jsonl, and returns JSON.
+Provenance Guard is a local backend service for a writing platform. A client sends `POST /submit` with `text` and `creator_id`. The service validates the request, assigns a `content_id`, runs two independent signals, combines their scores, maps the combined score to one of three reader-facing labels, writes the decision to `logs/audit.jsonl`, and returns structured JSON.
 
-The first signal comes from detector.py and measures how predictable the text is to a language model. The second comes from stylometry.py and measures sentence length variation, vocabulary variety, and punctuation density. scoring.py::combine_signals combines the scores. scoring.py::score_to_label turns the result into a human, unsure, or AI message.
+The first signal comes from `detector.py` and measures how predictable the text is to a local language model. The second comes from `stylometry.py` and measures the writing as text using sentence-length variation, vocabulary variety, and punctuation density. `scoring.py::combine_signals` combines the scores, and `scoring.py::score_to_label` maps the final score to high-confidence human, unsure, or high-confidence AI.
 
-A writer can challenge a result with POST /appeal. The service checks that the content_id exists, records the writer's reasoning in the audit log, changes the item's status to under_review, and confirms the appeal. It does not rerun the detector.
+A writer can challenge a result with `POST /appeal`. The service checks that the `content_id` exists, records the writer's reasoning, changes the status to `under_review`, and confirms the appeal.
 
 ## Signals and Scoring
 
 ### Signal one: model signal
 
-**What it measures:** `detector.py::model_signal` measures how predictable the submitted text is to the local GPT-2 model. Lower perplexity becomes a higher AI-likelihood score.
+`detector.py::model_signal` measures text predictability with a local GPT-2 model. Lower perplexity becomes a higher AI-likelihood score.
 
-**Why it might differ:** Generated prose often uses likely next words repeatedly, which can make it easier for a language model to predict.
-
-**What it cannot see:** Predictability is not authorship. Plain human writing, second-language writing, and short conventional sentences can also be easy for a model to predict. Dense or unusual AI text can move in the opposite direction.
+Its blind spot is that predictability is not authorship. Plain human writing, second-language writing, and short conventional sentences can also be predictable.
 
 ### Signal two: style signal
 
-**What it measures:** `stylometry.py::style_signal` combines:
+`stylometry.py::style_signal` combines sentence-length spread, type-token ratio, and punctuation density.
 
-- sentence-length spread
-- type-token ratio
-- punctuation density
-
-Low sentence variation, repeated vocabulary, and low punctuation variation push the score toward AI. More variation pushes it toward human.
-
-**What it cannot see:** The style signal cannot understand meaning or authorship. Someone can change punctuation, add typos, split sentences, or paste quotations without changing who wrote the underlying content. Text length also affects vocabulary ratios.
+Its blind spot is that it cannot understand meaning or authorship. Punctuation changes, typos, sentence splitting, and text length can change the score without changing who wrote the text.
 
 ### Combining rule
 
@@ -38,9 +30,7 @@ The rule is in `scoring.py::combine_signals`.
 combined score = 0.65(model score) + 0.35(style score)
 ```
 
-The model signal gets more weight because it directly measures text predictability. The style signal gets less weight because surface formatting is easier to manipulate.
-
-The thresholds are:
+The model signal receives more weight because it directly measures predictability. The style signal receives less weight because surface formatting is easier to manipulate.
 
 ```text
 0.00 to 0.30: high-confidence human
@@ -48,21 +38,27 @@ above 0.30 and below 0.75: unsure
 0.75 to 1.00: high-confidence AI
 ```
 
-I used a wide unsure range because falsely accusing a real writer has a larger cost than allowing some AI-generated writing to reach review.
+I intentionally use a wide unsure range because falsely accusing a human writer is more costly than allowing some AI-generated writing to remain uncertain.
 
-### A case where the two signals split
+### Real signal disagreement
 
-On the sample submission, the model signal scored the text `0.6459`, while the style signal scored it `0.2639`. The model found the wording relatively predictable, while the surface-writing statistics looked more human. After the 65% model weight and 35% style weight were combined, the final score was `0.5122`. That placed the submission in the unsure range instead of making a high-confidence authorship claim.
+One real submission produced:
+
+```text
+model score: 0.6459
+style score: 0.2639
+combined score: 0.5122
+```
+
+The two signals disagreed substantially. The model found the wording relatively predictable, while the style measurements looked more human. The combined result landed in the unsure band, which is the behavior I wanted when the evidence is mixed.
 
 ## Label Variants
 
-| Label | Score range | Exact text shown to a reader |
+| Label | Score range | Exact reader-facing text |
 |---|---|---|
-| high-confidence human | 0.00 to 0.30 | We think this was probably written by a person. |
-| unsure | above 0.30 and below 0.75 | We are not confident enough to say whether this was written by a person or generated by AI. No action should be taken based on this result alone. |
-| high-confidence AI | 0.75 to 1.00 | This text shows strong signs of AI generation, but this result is not proof of authorship. The writer can appeal this decision for review. |
-
-The unsure label states the uncertainty directly instead of treating a borderline score as an accusation.
+| High-confidence human | 0.00 to 0.30 | We think this was probably written by a person. |
+| Unsure | Above 0.30 and below 0.75 | We are not confident enough to say whether this was written by a person or generated by AI. No action should be taken based on this result alone. |
+| High-confidence AI | 0.75 to 1.00 | This text shows strong signs of AI generation, but this result is not proof of authorship. The writer can appeal this decision for review. |
 
 ## Sample Run
 
@@ -110,26 +106,24 @@ curl -X POST http://127.0.0.1:5000/appeal \
 ### Audit log entries
 
 ```json
-{"timestamp":"2026-10-31T17:16:34+00:00","content_id":"f5f8b2de492b43f0bf7217c33febef96","creator_id":"jimi_test","guess":"unsure","model_score":0.6459,"style_score":0.2639,"combined_score":0.5122,"label":"We are not confident enough to say whether this was written by a person or generated by AI. No action should be taken based on this result alone.","status":"decided"}
-{"timestamp":"2026-10-31T17:25:43+00:00","content_id":"f5f8b2de492b43f0bf7217c33febef96","creator_id":"jimi_test","event":"appeal","reasoning":"I wrote this myself and want the result reviewed.","status":"under_review"}
+{"combined_score":0.5122,"content_id":"f5f8b2de492b43f0bf7217c33febef96","creator_id":"jimi_test","guess":"unsure","label":"We are not confident enough to say whether this was written by a person or generated by AI. No action should be taken based on this result alone.","model_score":0.6459,"status":"decided","style_score":0.2639,"timestamp":"2026-10-31T17:16:34+00:00"}
+{"content_id":"f5f8b2de492b43f0bf7217c33febef96","creator_id":"jimi_test","event":"appeal","reasoning":"I wrote this myself and want the result reviewed.","status":"under_review","timestamp":"2026-10-31T17:25:43+00:00"}
 ```
-
-The log preserves the original decision and records the appeal as a second event with status `under_review`.
 
 ## How I Used AI
 
 ### Moment 1
 
-**What I asked for:** I used AI to review the design of the second signal and identify ways to turn sentence variation, vocabulary variety, and punctuation density into one bounded score.
+**What I asked:** I used AI to review how sentence variation, vocabulary variety, and punctuation density could be converted into one bounded stylometry score.
 
-**What came back:** The main risk was that the measurements use different numeric scales and some point in the opposite direction from the final AI score.
+**What came back:** The measurements use different numeric ranges and do not all point in the same direction.
 
-**What I changed:** I normalized each measurement before combining it, inverted the human-style score so higher always means more AI-like, and documented the blind spot that formatting changes can manipulate the result.
+**What I changed:** I normalized the measurements before combining them, inverted the human-style result so higher always means more AI-like, and documented that surface formatting can manipulate the signal.
 
 ### Moment 2
 
-**What I asked for:** I used AI to review the API flow for malformed input, audit logging, and appeals.
+**What I asked:** I used AI to review the submission, validation, logging, and appeal flow for edge cases.
 
-**What came back:** The important edge cases were missing or empty text, invalid `creator_id`, huge input, an unknown appeal `content_id`, and detector failures.
+**What came back:** Important cases included missing or empty text, invalid `creator_id`, very large text, unknown appeal IDs, and detector failures.
 
-**What I changed:** I added explicit JSON validation, rejection logging, a text-size limit, clear HTTP error responses, and an appeal check that requires an existing submission before changing its status.
+**What I changed:** I added explicit validation, 4xx JSON errors for bad input, rejection logging, a text-size limit, and an appeal check that requires an existing `content_id`.
