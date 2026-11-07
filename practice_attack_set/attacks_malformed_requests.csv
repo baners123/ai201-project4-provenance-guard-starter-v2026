@@ -1,0 +1,6 @@
+id,family,targets,raw_body,send_as,content_type
+MR01,missing_text,route validation,"{""creator_id"": ""malformed_missing""}",json,application/json
+MR02,null_text,route validation,"{""text"": null, ""creator_id"": ""malformed_null""}",json,application/json
+MR03,empty_text,route validation,"{""text"": """", ""creator_id"": ""malformed_empty""}",json,application/json
+MR04,missing_creator,route validation,"{""text"": ""This request has text but no creator id.""}",json,application/json
+MR05,raw_invalid_json,route validation,"{""text"": ""broken"", ""creator_id"": ",raw,application/json

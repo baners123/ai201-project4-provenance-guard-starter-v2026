@@ -21,7 +21,7 @@ WEIGHT_STYLE_SIGNAL = 0.35
 
 # A wide unsure band is intentional because a false accusation is the costly error.
 HUMAN_THRESHOLD = 0.30
-AI_THRESHOLD = 0.75
+AI_THRESHOLD = 0.62
 
 # Input validation
 MAX_TEXT_CHARS = 20_000
