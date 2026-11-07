@@ -1,0 +1,19 @@
+AFL handles automated crash discovery through massive input mutation and coverage-guided exploration, while ASan provides precise bug diagnostics like overflow types and stack traces essential for root cause.
+---
+When 18 'A' characters are supplied as input: The first 16 bytes fill password_buffer. The next 2 bytes overwrite the lower bytes of auth_flag. auth_flag becomes 0x4141, which equals 16705 in decimal.
+---
+fuzzing: Install, then compile the program with ? The input file is with c, and then you run it. After running the fuzzer it gives you a bunch of information, you should be able to look at that asan dump and see where the crash is.
+---
+Pop has the highest mean popularity at 47.576 and the highest median at 66. Hip hop has a mean of 37.759 and a median of 58. R&B has a mean of 36.687 and a median of 42.
+---
+Recent studies emphasize that fostering an inclusive environment where every team member feels their contributions matter significantly enhances job satisfaction, commitment, and team performance. Open communication channels further promote collaboration, conflict resolution, and team cohesion, creating a supportive and dynamic work environment.
+---
+Providing team members with the necessary tools to enhance their efficiency and prioritize their time is beneficial. Maintaining open communication channels for team members to share ideas, ask questions, and express concerns, promotes teamwork.
+---
+The episode title "Chinese Fake-Out" from the animated series "Total Drama World Tour" has been criticized for being potentially offensive due to its use of the term "fake-out," which could be interpreted as playing on stereotypes or misconceptions about Chinese culture.
+---
+Additionally, some viewers have raised concerns about the portrayal of cultural elements or stereotypes within the episode itself, such as the use of traditional Chinese imagery or references to Chinese customs or practices.
+---
+It's important to note that perceptions of what constitutes racism or cultural insensitivity can vary depending on cultural backgrounds and individual perspectives.
+---
+Hashing will used to determine whether a password meets the minimum requirement such as having an uppercase, lowercase, numbers, and special characters. The code will also ensure that the user doesn’t use their name or their personal information, which reduces vulnerability and the chances of a cyber attack. To provide users with feedback, the system can show the strength level (Weak, Moderate, and Strong) based on the passwords complexity. Adding rate limiting and assessing the time it would take to brute force the password adds an extra layer of security, making it more challenging for attackers to compromise accounts.
