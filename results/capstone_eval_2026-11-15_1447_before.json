@@ -1,0 +1,717 @@
+{
+  "label": "before",
+  "service": "http://127.0.0.1:5000",
+  "generated_at": "2026-11-15T14:47:25",
+  "producer": "run_capstone_eval.py",
+  "criteria": [
+    {
+      "criterion": 1,
+      "name": "Every successful submission creates a complete structured log entry",
+      "target": "10 of 10 complete structured log entries",
+      "trials": [
+        {
+          "passed": true,
+          "summary": "10/10 successful submissions had every required structured log field",
+          "complete_entries": 10,
+          "successful_entries": 10,
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "missing_fields": []
+        },
+        {
+          "passed": true,
+          "summary": "10/10 successful submissions had every required structured log field",
+          "complete_entries": 10,
+          "successful_entries": 10,
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "missing_fields": []
+        },
+        {
+          "passed": true,
+          "summary": "10/10 successful submissions had every required structured log field",
+          "complete_entries": 10,
+          "successful_entries": 10,
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "missing_fields": []
+        }
+      ],
+      "verdict": "MET"
+    },
+    {
+      "criterion": 2,
+      "name": "The metrics endpoint matches known request activity",
+      "target": "10 submits, 10 successes, label counts total 10",
+      "trials": [
+        {
+          "passed": true,
+          "summary": "metrics reported 10 submits, 10 successful, label total 10",
+          "metrics": {
+            "average_submit_duration_ms": 73.22,
+            "error_counts": {},
+            "label_counts": {
+              "ai": 2,
+              "unsure": 8
+            },
+            "last_run_timestamp": "2026-11-15T19:47:29.014+00:00",
+            "p95_submit_duration_ms": 115.27,
+            "rejected_or_failed_requests": 0,
+            "run_log": "/Users/jimiadegoroye/Desktop/ai201-project4-provenance-guard-starter-v2026/logs/capstone_runs.jsonl",
+            "submit_requests": 10,
+            "successful_submits": 10,
+            "total_requests_logged": 10
+          },
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "metrics reported 10 submits, 10 successful, label total 10",
+          "metrics": {
+            "average_submit_duration_ms": 62.48,
+            "error_counts": {},
+            "label_counts": {
+              "ai": 2,
+              "unsure": 8
+            },
+            "last_run_timestamp": "2026-11-15T19:47:29.689+00:00",
+            "p95_submit_duration_ms": 74.02,
+            "rejected_or_failed_requests": 0,
+            "run_log": "/Users/jimiadegoroye/Desktop/ai201-project4-provenance-guard-starter-v2026/logs/capstone_runs.jsonl",
+            "submit_requests": 10,
+            "successful_submits": 10,
+            "total_requests_logged": 10
+          },
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "metrics reported 10 submits, 10 successful, label total 10",
+          "metrics": {
+            "average_submit_duration_ms": 63.77,
+            "error_counts": {},
+            "label_counts": {
+              "ai": 2,
+              "unsure": 8
+            },
+            "last_run_timestamp": "2026-11-15T19:47:30.369+00:00",
+            "p95_submit_duration_ms": 73.85,
+            "rejected_or_failed_requests": 0,
+            "run_log": "/Users/jimiadegoroye/Desktop/ai201-project4-provenance-guard-starter-v2026/logs/capstone_runs.jsonl",
+            "submit_requests": 10,
+            "successful_submits": 10,
+            "total_requests_logged": 10
+          },
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        }
+      ],
+      "verdict": "MET"
+    },
+    {
+      "criterion": 3,
+      "name": "Failed requests are observable",
+      "target": "4 of 4 return 4xx and are logged with status and error",
+      "trials": [
+        {
+          "passed": true,
+          "summary": "4/4 returned 4xx and 4/4 were logged with errors",
+          "responses": [
+            {
+              "case": "empty_text",
+              "status_code": 400,
+              "body": {
+                "error": "empty_text",
+                "message": "text cannot be empty."
+              }
+            },
+            {
+              "case": "missing_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "null_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "too_large",
+              "status_code": 413,
+              "body": {
+                "error": "text_too_large",
+                "message": "text must be at most 20000 characters."
+              }
+            }
+          ],
+          "logged_failures": [
+            {
+              "timestamp": "2026-11-15T19:47:30.376+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.34,
+              "creator_id": "c3_t1_empty",
+              "input_preview": "",
+              "input_chars": 0,
+              "input_words": 0,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "empty_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.380+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.33,
+              "creator_id": "c3_t1_missing",
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.383+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.31,
+              "creator_id": "c3_t1_null",
+              "input_preview": "None",
+              "input_chars": null,
+              "input_words": null,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.385+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 413,
+              "duration_ms": 0.3,
+              "creator_id": "c3_t1_large",
+              "input_preview": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word ",
+              "input_chars": 24999,
+              "input_words": 5000,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "text_too_large"
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "4/4 returned 4xx and 4/4 were logged with errors",
+          "responses": [
+            {
+              "case": "empty_text",
+              "status_code": 400,
+              "body": {
+                "error": "empty_text",
+                "message": "text cannot be empty."
+              }
+            },
+            {
+              "case": "missing_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "null_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "too_large",
+              "status_code": 413,
+              "body": {
+                "error": "text_too_large",
+                "message": "text must be at most 20000 characters."
+              }
+            }
+          ],
+          "logged_failures": [
+            {
+              "timestamp": "2026-11-15T19:47:30.390+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.29,
+              "creator_id": "c3_t2_empty",
+              "input_preview": "",
+              "input_chars": 0,
+              "input_words": 0,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "empty_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.393+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.26,
+              "creator_id": "c3_t2_missing",
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.396+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.33,
+              "creator_id": "c3_t2_null",
+              "input_preview": "None",
+              "input_chars": null,
+              "input_words": null,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.399+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 413,
+              "duration_ms": 0.34,
+              "creator_id": "c3_t2_large",
+              "input_preview": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word ",
+              "input_chars": 24999,
+              "input_words": 5000,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "text_too_large"
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "4/4 returned 4xx and 4/4 were logged with errors",
+          "responses": [
+            {
+              "case": "empty_text",
+              "status_code": 400,
+              "body": {
+                "error": "empty_text",
+                "message": "text cannot be empty."
+              }
+            },
+            {
+              "case": "missing_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "null_text",
+              "status_code": 400,
+              "body": {
+                "error": "invalid_text",
+                "message": "text must be a string."
+              }
+            },
+            {
+              "case": "too_large",
+              "status_code": 413,
+              "body": {
+                "error": "text_too_large",
+                "message": "text must be at most 20000 characters."
+              }
+            }
+          ],
+          "logged_failures": [
+            {
+              "timestamp": "2026-11-15T19:47:30.403+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.29,
+              "creator_id": "c3_t3_empty",
+              "input_preview": "",
+              "input_chars": 0,
+              "input_words": 0,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "empty_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.407+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.27,
+              "creator_id": "c3_t3_missing",
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.410+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 400,
+              "duration_ms": 0.29,
+              "creator_id": "c3_t3_null",
+              "input_preview": "None",
+              "input_chars": null,
+              "input_words": null,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "invalid_text"
+            },
+            {
+              "timestamp": "2026-11-15T19:47:30.413+00:00",
+              "method": "POST",
+              "route": "/submit",
+              "status_code": 413,
+              "duration_ms": 0.28,
+              "creator_id": "c3_t3_large",
+              "input_preview": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word ",
+              "input_chars": 24999,
+              "input_words": 5000,
+              "output_guess": null,
+              "output_confidence": null,
+              "output_status": null,
+              "output_error": "text_too_large"
+            }
+          ]
+        }
+      ],
+      "verdict": "MET"
+    },
+    {
+      "criterion": 4,
+      "name": "Warm submission latency stays under 500 milliseconds",
+      "target": "At least 9 of 10 under 500 ms after warm-up",
+      "trials": [
+        {
+          "passed": true,
+          "summary": "10/10 warm submissions completed under 500 ms",
+          "warmup_status": 200,
+          "durations_seconds": [
+            0.0735,
+            0.0681,
+            0.06,
+            0.0624,
+            0.0708,
+            0.0573,
+            0.0566,
+            0.0531,
+            0.0584,
+            0.0616
+          ],
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "10/10 warm submissions completed under 500 ms",
+          "warmup_status": 200,
+          "durations_seconds": [
+            0.0606,
+            0.0581,
+            0.0739,
+            0.0575,
+            0.0583,
+            0.0667,
+            0.0709,
+            0.058,
+            0.055,
+            0.0606
+          ],
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "10/10 warm submissions completed under 500 ms",
+          "warmup_status": 200,
+          "durations_seconds": [
+            0.0588,
+            0.0572,
+            0.0582,
+            0.0666,
+            0.0589,
+            0.0609,
+            0.0576,
+            0.0779,
+            0.058,
+            0.0612
+          ],
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ]
+        }
+      ],
+      "verdict": "MET"
+    },
+    {
+      "criterion": 5,
+      "name": "The observability extension does not break the original submission path",
+      "target": "10 of 10 HTTP 200 with all required response fields",
+      "trials": [
+        {
+          "passed": true,
+          "summary": "10/10 returned HTTP 200 with every required original response field",
+          "complete_responses": 10,
+          "responses": [
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "10/10 returned HTTP 200 with every required original response field",
+          "complete_responses": 10,
+          "responses": [
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "summary": "10/10 returned HTTP 200 with every required original response field",
+          "complete_responses": 10,
+          "responses": [
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            },
+            {
+              "status_code": 200,
+              "missing_fields": []
+            }
+          ]
+        }
+      ],
+      "verdict": "MET"
+    }
+  ]
+}
