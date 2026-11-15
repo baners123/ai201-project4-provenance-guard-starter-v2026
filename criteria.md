@@ -39,3 +39,36 @@ The before evaluation showed that Criterion 3 failed in all three trials because
 I chose 0.62 because it was a small change that allowed the 0.6497 AI sample to reach the high-confidence AI label while keeping the 0.6004 sample in the unsure range. I did not change either signal or the 65% model and 35% stylometry weighting.
 
 The tradeoff is that lowering the AI threshold may increase false positives. I therefore reran all five acceptance criteria after the change to check whether Criterion 1 still protected human writing.
+
+
+# Unit 9 Capstone Acceptance Criteria
+
+## 1. Every successful submission creates a complete structured log entry
+
+For 10 valid `/submit` requests, all 10 must create an entry in `logs/capstone_runs.jsonl` containing a timestamp, route, HTTP method, status code, duration in milliseconds, creator ID, input character count, input word count, output guess, and output confidence.
+
+**Why this target:** The main capstone extension is observability. A request that succeeds but does not leave enough structured information to explain what happened defeats the purpose of the extension. I chose 10 out of 10 because missing operational records would make later diagnosis unreliable.
+
+## 2. The metrics endpoint matches known request activity
+
+After starting from a known log state and sending 10 valid submissions, the `/metrics` endpoint must report 10 submit requests and 10 successful submissions. Its label counts must also add up to 10.
+
+**Why this target:** The metrics endpoint should summarize the structured log accurately rather than give approximate numbers. Because I control exactly how many requests are sent during the test, the expected count is known and there should be no difference between the test activity and the reported totals.
+
+## 3. Failed requests are observable
+
+For 4 invalid submission requests, including empty text, missing text, null text, and text longer than 20,000 characters, all 4 must return a 4xx response and all 4 must create structured entries in `logs/capstone_runs.jsonl` with the correct HTTP status and an error value.
+
+**Why this target:** Failed requests are especially important to observe because otherwise they appear only as missing successful results. I chose all 4 because the extension should record both successful and rejected requests consistently.
+
+## 4. Warm submission latency stays under 500 milliseconds
+
+After one warm-up request has loaded the local model, at least 9 of 10 valid `/submit` requests must complete in under 500 milliseconds according to the end-to-end timing measured by the client.
+
+**Why this target:** The first request can be much slower because the local GPT-2 model has to load, so I exclude the warm-up request. A 500 millisecond target gives the local service room for normal variation while still identifying major slowdowns in repeated use.
+
+## 5. The observability extension does not break the original submission path
+
+For 10 valid submissions, all 10 must return HTTP 200 and include `content_id`, `guess`, `confidence`, `label`, `model_score`, `style_score`, and `status` in the JSON response while the capstone logging extension is enabled.
+
+**Why this target:** The capstone should add observability without breaking the system it extends. I chose 10 out of 10 because instrumentation should not introduce intermittent failures into the original submission path.
