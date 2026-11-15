@@ -247,3 +247,59 @@ This section should be completed after the official attack set and the after eva
 The main remaining risk is that the detector can be manipulated through surface-level changes such as punctuation, typos, and sentence restructuring. These changes can affect the stylometry signal without changing the underlying authorship.
 
 If this system were used in production, I would favor fewer false accusations against human writers even if more AI-written text remained in the unsure range. A false accusation directly affects a writer, while an unsure result can be sent for additional review.
+
+## Capstone
+
+**What This Extends**
+
+This capstone extends Provenance Guard from Units 7 and 8. The new extension adds structured request-level observability and timing without replacing the existing detector or scoring system.
+
+**The Shape**
+
+I chose **Shape A: Deploy and instrument**.
+
+The extension adds structured runtime logging and a metrics endpoint. Out of scope are replacing GPT-2, adding another detection signal, rebuilding the interface, or changing the scoring system during the initial build.
+
+**Running It**
+
+I use **Path B: local with logs**. The capstone starts with:
+
+```bash
+source .venv/bin/activate && python capstone_app.py
+```
+
+**Instrumentation**
+
+The capstone writes structured JSON records to `logs/capstone_runs.jsonl` and exposes `GET /metrics`.
+
+PASTE AT LEAST TEN REAL LOG ENTRIES HERE AFTER RUNNING THE SYSTEM. Include at least one failed or rejected request.
+
+**What It Costs**
+
+The system uses a local model rather than a paid API, so cost is measured as local end-to-end compute time.
+
+```bash
+python measure_cost.py
+```
+
+PASTE THE REAL AVERAGE, MEDIAN, AND 100-RUN ARITHMETIC HERE.
+
+**Run Log and Verdicts**
+
+My five capstone acceptance criteria are in `criteria.md` and were committed before results.
+
+PASTE THE FIVE-ROW BEFORE RUN TABLE HERE.
+
+**The Improvement**
+
+Describe the one change made after the before-run diagnosis and paste the complete five-row AFTER run table here.
+
+**What's Still Broken**
+
+Explain every remaining miss, what you would try next, and why you stopped. If all five are met, name the criterion whose target was too easy and give a stricter target.
+
+**How I Used AI**
+
+Moment 1: I used AI to check whether my capstone scope was still one bounded extension. I kept detector and scoring changes out of the initial build and limited the extension to runtime observability.
+
+Moment 2: I used AI to review which fields would make the structured log useful for diagnosis. I kept duration, route, status code, bounded input metadata, and output status while avoiding storage of complete essays in the operational log.

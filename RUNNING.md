@@ -306,3 +306,62 @@ is evidence, and the entries you paste into your README are what unit 8 grades.
 
 **Do not delete and recreate this repository.** You submit the same URL both
 units.
+
+
+---
+
+# Unit 9 Capstone Running Instructions
+
+## Path
+Path B: local with logs.
+
+## Clean setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python detector.py
+python test.py
+```
+
+## Start command
+
+```bash
+source .venv/bin/activate && python capstone_app.py
+```
+
+## Smoke tests
+
+```bash
+curl http://127.0.0.1:5000/health
+curl http://127.0.0.1:5000/metrics
+```
+
+## Real submission
+
+```bash
+curl -X POST http://127.0.0.1:5000/submit \
+  -H "Content-Type: application/json" \
+  -d '{"text":"I missed the bus this morning and had to walk across campus in the rain. My notes were damp by the time I reached class.","creator_id":"capstone_demo"}'
+```
+
+## Failure-path submission
+
+```bash
+curl -X POST http://127.0.0.1:5000/submit \
+  -H "Content-Type: application/json" \
+  -d '{"text":"","creator_id":"capstone_bad_input"}'
+```
+
+## Logs
+
+- `logs/audit.jsonl`
+- `logs/capstone_runs.jsonl`
+
+## Cost measurement
+
+```bash
+python measure_cost.py
+```
