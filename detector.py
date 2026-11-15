@@ -106,7 +106,7 @@ def perplexity(text: str) -> float:
     if input_ids.shape[1] < 3:
         raise ValueError("Text is too short to score — a few sentences at least.")
 
-    with torch.no_grad():
+    with torch.inference_mode():
         output = model(input_ids, labels=input_ids)
 
     # The model's loss here IS mean negative log-likelihood per token.
