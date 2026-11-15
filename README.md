@@ -252,54 +252,138 @@ If this system were used in production, I would favor fewer false accusations ag
 
 **What This Extends**
 
-This capstone extends Provenance Guard from Units 7 and 8. The new extension adds structured request-level observability and timing without replacing the existing detector or scoring system.
+This capstone extends Provenance Guard, the local AI-writing provenance service from Units 7 and 8. The original system already accepted submissions, combined a local GPT-2 model signal with a stylometry signal, returned reader-facing labels, supported appeals, rate limited callers, and wrote an audit log.
+
+The Unit 9 extension adds an operational observability layer. `capstone_app.py` records structured request-level information in `logs/capstone_runs.jsonl`, and `GET /metrics` summarizes request volume, failures, average submission latency, p95 submission latency, label counts, and error counts.
 
 **The Shape**
 
 I chose **Shape A: Deploy and instrument**.
 
-The extension adds structured runtime logging and a metrics endpoint. Out of scope are replacing GPT-2, adding another detection signal, rebuilding the interface, or changing the scoring system during the initial build.
+The extension is limited to the operational layer around the existing Provenance Guard service. I did not replace GPT-2, add another detection signal, rebuild the interface, or redesign the scoring system as part of the initial capstone build.
 
 **Running It**
 
-I use **Path B: local with logs**. The capstone starts with:
+I used **Path B: local with logs**. The exact setup, environment requirements, start command, smoke tests, and log locations are documented in `RUNNING.md`.
+
+The capstone starts with:
 
 ```bash
 source .venv/bin/activate && python capstone_app.py
 ```
 
+The service runs at `http://127.0.0.1:5000`.
+
 **Instrumentation**
 
-The capstone writes structured JSON records to `logs/capstone_runs.jsonl` and exposes `GET /metrics`.
+The capstone writes one JSON record per request to `logs/capstone_runs.jsonl`. Records include a timestamp, HTTP method, route, status code, request duration, creator ID when available, input size, output guess, output confidence, output status, and output error.
 
-PASTE AT LEAST TEN REAL LOG ENTRIES HERE AFTER RUNNING THE SYSTEM. Include at least one failed or rejected request.
+`GET /metrics` summarizes the same structured log so I can inspect the running service without adding new code.
+
+The following are real entries from the capstone run log:
+
+```json
+{"timestamp":"2026-11-15T19:54:01.042+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":48.06,"creator_id":"c5_t3_1","input_chars":102,"input_words":20,"output_guess":"ai","output_confidence":0.6474,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.088+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":40.35,"creator_id":"c5_t3_2","input_chars":114,"input_words":20,"output_guess":"unsure","output_confidence":0.3654,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.132+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":40.45,"creator_id":"c5_t3_3","input_chars":117,"input_words":19,"output_guess":"unsure","output_confidence":0.4131,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.181+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":44.46,"creator_id":"c5_t3_4","input_chars":122,"input_words":22,"output_guess":"unsure","output_confidence":0.4978,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.226+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":42.42,"creator_id":"c5_t3_5","input_chars":118,"input_words":21,"output_guess":"unsure","output_confidence":0.3708,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.282+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":51.51,"creator_id":"c5_t3_6","input_chars":122,"input_words":21,"output_guess":"unsure","output_confidence":0.3012,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.326+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":41.70,"creator_id":"c5_t3_7","input_chars":123,"input_words":21,"output_guess":"unsure","output_confidence":0.4646,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.371+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":41.38,"creator_id":"c5_t3_8","input_chars":119,"input_words":21,"output_guess":"unsure","output_confidence":0.5596,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.416+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":42.12,"creator_id":"c5_t3_9","input_chars":121,"input_words":21,"output_guess":"ai","output_confidence":0.6978,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:54:01.462+00:00","method":"POST","route":"/submit","status_code":200,"duration_ms":42.45,"creator_id":"c5_t3_10","input_chars":123,"input_words":19,"output_guess":"unsure","output_confidence":0.3294,"output_status":"decided","output_error":null}
+{"timestamp":"2026-11-15T19:56:30.997+00:00","method":"POST","route":"/submit","status_code":400,"duration_ms":4.53,"creator_id":"capstone_final_empty","input_chars":0,"input_words":0,"output_guess":null,"output_confidence":null,"output_status":null,"output_error":"empty_text"}
+{"timestamp":"2026-11-15T19:56:35.451+00:00","method":"POST","route":"/submit","status_code":400,"duration_ms":2.70,"creator_id":"capstone_final_missing","output_guess":null,"output_confidence":null,"output_status":null,"output_error":"invalid_text"}
+{"timestamp":"2026-11-15T19:56:39.488+00:00","method":"POST","route":"/submit","status_code":400,"duration_ms":1.58,"creator_id":"capstone_final_null","input_chars":null,"input_words":null,"output_guess":null,"output_confidence":null,"output_status":null,"output_error":"invalid_text"}
+```
+
+The successful entries show the normal scoring path, while the final three entries prove that failed requests are also observable.
 
 **What It Costs**
 
-The system uses a local model rather than a paid API, so cost is measured as local end-to-end compute time.
+The system uses a local model rather than a paid API, so I measured cost as local end-to-end compute time.
 
-```bash
-python measure_cost.py
+I ran `python measure_cost.py`, excluded one warm-up request, and measured ten real submissions. All ten returned HTTP 200.
+
+- Average local round-trip time: `0.0882` seconds
+- Median local round-trip time: `0.0805` seconds
+
+For 100 people making one submission each per day:
+
+```text
+0.0882 seconds/run x 100 runs = 8.82 seconds of local compute time per day
 ```
 
-PASTE THE REAL AVERAGE, MEDIAN, AND 100-RUN ARITHMETIC HERE.
+This is measured local compute time, not an API pricing estimate.
 
 **Run Log and Verdicts**
 
-My five capstone acceptance criteria are in `criteria.md` and were committed before results.
+I wrote the five Unit 9 criteria in `criteria.md` and committed them before the official capstone evaluation results.
 
-PASTE THE FIVE-ROW BEFORE RUN TABLE HERE.
+Before the improvement:
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Complete structured log entry | 10/10 complete | 10/10 | 10/10 | 10/10 | MET |
+| 2. Metrics match known activity | 10 submits, 10 successes, label total 10 | 10/10/10 | 10/10/10 | 10/10/10 | MET |
+| 3. Failed requests are observable | 4/4 return 4xx and are logged with errors | 4/4 | 4/4 | 4/4 | MET |
+| 4. Warm latency stays under 500 ms | At least 9/10 under 500 ms | 10/10 | 10/10 | 10/10 | MET |
+| 5. Original submission path still works | 10/10 HTTP 200 with all required fields | 10/10 | 10/10 | 10/10 | MET |
+
+All five criteria were MET, so there was no failed criterion to diagnose. The result that stood out was Criterion 4. The target was 9 of 10 warm submissions under 500 milliseconds, but all 30 measured warm submissions passed. The before-run average across those 30 requests was `0.0619` seconds, the fastest was `0.0531` seconds, and the slowest was `0.0779` seconds. That showed that the 500 millisecond target was conservative for my local environment.
 
 **The Improvement**
 
-Describe the one change made after the before-run diagnosis and paste the complete five-row AFTER run table here.
+Because all five criteria passed, I focused the required improvement on the criterion whose target appeared easiest to meet: warm submission latency.
+
+In `detector.py`, I changed the model inference context from:
+
+```python
+with torch.no_grad():
+```
+
+to:
+
+```python
+with torch.inference_mode():
+```
+
+The goal was to reduce inference overhead without changing the detector model, the calculated scores, the response schema, or the observability extension.
+
+I then restarted the service and reran the exact same five criteria three times each.
+
+After the improvement:
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Complete structured log entry | 10/10 complete | 10/10 | 10/10 | 10/10 | MET |
+| 2. Metrics match known activity | 10 submits, 10 successes, label total 10 | 10/10/10 | 10/10/10 | 10/10/10 | MET |
+| 3. Failed requests are observable | 4/4 return 4xx and are logged with errors | 4/4 | 4/4 | 4/4 | MET |
+| 4. Warm latency stays under 500 ms | At least 9/10 under 500 ms | 10/10 | 10/10 | 10/10 | MET |
+| 5. Original submission path still works | 10/10 HTTP 200 with all required fields | 10/10 | 10/10 | 10/10 | MET |
+
+The average warm latency across Criterion 4 changed from `0.0619` seconds before to `0.0547` seconds after.
+
+```text
+Before average: 0.0619 seconds
+After average:  0.0547 seconds
+Change:        -0.0072 seconds
+Percent change: -11.60%
+```
+
+The improvement reduced average warm latency by about `11.60%` while all five acceptance criteria remained MET.
+
+The timing was not uniformly better. The fastest after request was `0.0424` seconds, but the slowest after request was `0.2275` seconds, compared with a before-run maximum of `0.0779` seconds. This means the average improved, but the after run also contained a larger latency spike. I would not claim that the change eliminated latency variation.
 
 **What's Still Broken**
 
-Explain every remaining miss, what you would try next, and why you stopped. If all five are met, name the criterion whose target was too easy and give a stricter target.
+All five acceptance criteria were MET before and after the improvement, but Criterion 4 was set too loosely for this machine. A future version should use a stricter target based on the measured distribution rather than the original 500 millisecond threshold. I would tighten it to at least 9 of 10 warm submissions under `200` milliseconds.
+
+The main remaining operational issue is latency variation. Even though the after-run average improved, one request took `0.2275` seconds. With another unit of work, the first thing I would do is run a larger repeated latency test and track p95 latency under sustained request volume. That would show whether the spike was an isolated local event or a repeatable performance problem before I made another optimization.
 
 **How I Used AI**
 
-Moment 1: I used AI to check whether my capstone scope was still one bounded extension. I kept detector and scoring changes out of the initial build and limited the extension to runtime observability.
+Moment 1: I used AI to check whether my Unit 9 plan was still one bounded extension. The useful result was separating the operational observability work from changes to the detector and scoring system. I kept the initial capstone build limited to structured logging, timing, metrics, and a documented local run path.
 
-Moment 2: I used AI to review which fields would make the structured log useful for diagnosis. I kept duration, route, status code, bounded input metadata, and output status while avoiding storage of complete essays in the operational log.
+Moment 2: After I wrote and committed my five acceptance criteria, I used AI to check whether each criterion could be tested consistently and to help build a test runner around the criteria I had already written. I ran the tests myself, kept the real output, and used the measured before and after results rather than replacing the criteria after seeing the results.
